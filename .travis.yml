@@ -24,6 +24,7 @@ deploy:
   on:
     repo: beercan1989/playground-kotlin-akka
     tags: true
+    jdk: oraclejdk8
 
 notifications:
   slack:
