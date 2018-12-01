@@ -16,13 +16,42 @@
 
 package uk.co.baconi.playground.kotlin.akka
 
-class Application {
-    val greeting: String
-        get() {
-            return "Hello world."
-        }
-}
+import akka.actor.ActorSystem
+import akka.http.javadsl.Http
+import akka.stream.ActorMaterializer
+import uk.co.baconi.playground.kotlin.akka.hw.HelloWorldRoute
+import akka.http.javadsl.ConnectHttp
+import akka.http.javadsl.ServerBinding
+import akka.http.javadsl.server.Route
+import java.util.concurrent.CompletionStage
 
-fun main(args: Array<String>) {
-    println(Application().greeting)
+
+
+class Application : HelloWorldRoute {
+
+    companion object {
+        @JvmStatic fun main(args: Array<String>) {
+            Application()
+                    .startHelloWorldServer("127.0.0.1", 8080)
+        }
+    }
+
+    private val actorSystem: ActorSystem = ActorSystem.create("application")
+
+    fun startHelloWorldServer(host: String, port: Int): Application {
+        startHttpServer(host, port) {
+            helloWorldRoute()
+        }
+        return this
+    }
+
+    private fun startHttpServer(host: String, port: Int, routes: () -> Route): CompletionStage<ServerBinding> {
+
+        val actorMaterializer = ActorMaterializer.create(actorSystem)
+
+        val routeFlow = withJsonRejectionHandling(routes).flow(actorSystem, actorMaterializer)
+        val http = Http.get(actorSystem)
+
+        return http.bindAndHandle(routeFlow, ConnectHttp.toHost(host, port), actorMaterializer)
+    }
 }

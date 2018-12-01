@@ -1,7 +1,10 @@
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.3.10"
     application
+    idea
+    kotlin("jvm") version "1.3.10"
 }
 
 repositories {
@@ -10,16 +13,48 @@ repositories {
 }
 
 dependencies {
+
+    val scalaVersion = "2.12"
+    val akkaHttpVersion = "10.1.5"
+    val akkaVersion = "2.5.18"
+
     // Use the Kotlin JDK 8 standard library
     implementation(kotlin("stdlib-jdk8"))
+    implementation(kotlin("reflect", embeddedKotlinVersion))
 
-    // Use the Kotlin test library
-    testImplementation(kotlin("test"))
+    // Akka Http
+    implementation("com.typesafe.akka", "akka-http_$scalaVersion", akkaHttpVersion)
+    implementation("com.typesafe.akka", "akka-stream_$scalaVersion", akkaVersion)
 
-    // Use the Kotlin JUnit integration
-    testImplementation(kotlin("test-junit"))
+    // JSON Support
+    implementation("com.typesafe.akka", "akka-http-jackson_$scalaVersion", akkaHttpVersion)
+    implementation("com.fasterxml.jackson.module", "jackson-module-kotlin", "2.9.7")
+
+    // Logging
+    implementation("ch.qos.logback", "logback-classic", "1.2.3")
+    implementation("com.typesafe.akka", "akka-slf4j_$scalaVersion", akkaVersion)
+
+    // Kotlin Test
+    testImplementation("io.kotlintest", "kotlintest-runner-junit5", "3.1.10")
+
+    // Akka Http TestKit
+    testImplementation("com.typesafe.akka", "akka-http-testkit_$scalaVersion", akkaHttpVersion)
 }
 
 application {
-    mainClassName = "uk.co.baconi.playground.kotlin.akka.AppKt"
+    mainClassName = "uk.co.baconi.playground.kotlin.akka.Application"
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
+    testLogging {
+        events("passed", "skipped", "failed")
+        exceptionFormat = TestExceptionFormat.FULL
+    }
+}
+
+tasks.withType<KotlinCompile> {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
 }

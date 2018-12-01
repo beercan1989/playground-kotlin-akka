@@ -16,12 +16,8 @@
 
 package uk.co.baconi.playground.kotlin.akka
 
-import kotlin.test.Test
-import kotlin.test.assertNotNull
+import akka.http.javadsl.model.StatusCode
 
-class ApplicationTest {
-    @Test fun testAppHasAGreeting() {
-        val classUnderTest = Application()
-        assertNotNull(classUnderTest.greeting, "app should have a greeting")
-    }
+data class ErrorResult(val status: Int, val error: String) {
+    constructor(statusCode: StatusCode) : this(statusCode.intValue(), statusCode.reason())
 }
