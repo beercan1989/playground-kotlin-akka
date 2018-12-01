@@ -52,6 +52,8 @@ class Application : HelloWorldRoute {
         val routeFlow = withJsonRejectionHandling(routes).flow(actorSystem, actorMaterializer)
         val http = Http.get(actorSystem)
 
+        actorSystem.log().info("Starting server at http://$host:$port/")
+
         return http.bindAndHandle(routeFlow, ConnectHttp.toHost(host, port), actorMaterializer)
     }
 }
