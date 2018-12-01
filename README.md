@@ -5,9 +5,12 @@
   
 Test project for Akka HTTP, Akka and Kotlin wrapped in Gradle
 
-## Features  
+## Features in version 1
 * [x] CI testing in Travis with Java 8 and 11
 * [x] Akka HTTP routing
+* [x] Github releases via Travis
+
+## Features coming  
 * [ ] Akka Typed actors processing requests
 * [ ] Throttling requests
 * [ ] Circuit breaker
