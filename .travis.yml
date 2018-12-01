@@ -12,3 +12,19 @@ cache:
   directories:
     - $HOME/.gradle/caches/
     - $HOME/.gradle/wrapper/
+
+deploy:
+  provider: releases
+  api_key:
+    secure: NbJqr6jN8OjwyUnGsvMfMMxAppr9we3Gqb8Oa27wpT3DXz4tBNQnQv8Zm3+Bf7AZoN8cvVmgRYcwZtsDNx5nHs+ZY+SdqF+rP45ZQBqH2oKcRko6Ag9juMzJ9oJKB8RxE/wH+TURK2TCD6EXkZQ9uFn64feOAtOg1QG07vve9aZgZtpctEk4ZZ1/0h4xH5LGW67RoafN54W1i0iIE5T3WhZaWKKh1+Ga2gf9PMYAaE4wNN9zFjGigvy/6Ql+ofG+7K1rH10uzm4ffkaXwtuILBRDiIbE83F+zFtIS7TfPVUZIclfW1rkr1mKT+6ractO7qzTJwuRkbZhmoL0bwvdTtyP77RVQEXMVrH6NFfuhmfO16maKwNebul9d1LuqyQcAhp4+ssSVPQ69bpks7/A1TuagpC0T5chgKTU5KorA66waanThXgVKGTs+tle8Xh/W27gNJDwz1jDmqTfzEeR89xlkuAlGjLph2fctONdn04C7HUpr2BRdWi2MGs6GlBThax/gIqpq0+4m0/PeAFRX/3/mR7LfKtJCwA6rP9UAFX9uqUwiX6PyIltJXcJj+WvjCAclOET3WazbZKs+sJF6XM/vdnV6OYcUauNarMU297/Q5oueuX392yoS2mE0rqg0tJMBu629wx39FRcSQpI2qOl1xlcscgSBFkyFXvfdZg=
+  file:
+    - build/distributions/playground-kotlin-akka.tar
+    - build/distributions/playground-kotlin-akka.zip
+  skip_cleanup: true
+  on:
+    repo: beercan1989/playground-kotlin-akka
+    tags: true
+
+notifications:
+  slack:
+    secure: pJ4coYtFhRAO2Rvm7mDyKDkFtCzuTgTWg4gV9/ybnelpF+H0ot2TthyOQsgzsAGJ6xxdIPdq3mXZb6BUFWzvZXchQlDyB0m+GMaq4fVJfg/faUacl8eLxKl+f5cNB/IQTBBcx1AFH8jWIBoyrB8OjKhJNsCc3BPp9cCMzhjlW1ZK/dM8OExr4vlnU5nTsksK1Vlfu5btr9v/HHxL794pwcUdmL9rrkc/Fr8quvpzVyoTsKZ/dVxCPMcHk05oJ+K2Si/GOIzaHXNVbi2mrubFK6zfl0Oi5GQSj67I1FzGFl9dfNpK404L9a83E+rQOXAAKMYQ3honKgt/NROQ3tpbeuj6onOZla8ejR9fnxj7fE62Qt76uT3hHN4ne35nK5IjEuI1cZkNdnoj6o++JHszNbj0GNtj3AFQRM1TOzy/gOef90x4nN1okMITcWewigkRvohXSIt1V0niE6dLtBmsDZ+ClJnGmUnLVcKajGggfRSpDgGBxxXaMf/T0rSZJoK1F8h0aSmovhyPKasLTDo+L3FRiIQvFNrZHd15D5DHmqnq3UURCm2a+pBu0q8D8auc32horiWwykTxZhS006lxxOsn0NviwFjGrq4JbImaMwqPK0gzHZG0CZBIULqIGhX3XVLO5+YeQUqEkebxpCRvByqdaYhIedNNTPazIo5bRyo=
