@@ -26,6 +26,10 @@ dependencies {
     implementation("com.typesafe.akka", "akka-http_$scalaVersion", akkaHttpVersion)
     implementation("com.typesafe.akka", "akka-stream_$scalaVersion", akkaVersion)
 
+    // Akka Actors
+    implementation("com.typesafe.akka", "akka-actor_$scalaVersion", akkaVersion)
+    implementation("com.typesafe.akka", "akka-actor-typed_$scalaVersion", akkaVersion)
+
     // JSON Support
     implementation("com.typesafe.akka", "akka-http-jackson_$scalaVersion", akkaHttpVersion)
     implementation("com.fasterxml.jackson.module", "jackson-module-kotlin", "2.9.7")
@@ -39,6 +43,12 @@ dependencies {
 
     // Akka Http TestKit
     testImplementation("com.typesafe.akka", "akka-http-testkit_$scalaVersion", akkaHttpVersion)
+
+    // Akka Actors TestKit
+    //testImplementation("com.typesafe.akka", "akka-actor-testkit-typed_$scalaVersion", akkaVersion)
+
+    // Kotlin Mocking
+    testImplementation("io.mockk", "mockk", "1.8.13.kotlin13")
 }
 
 application {

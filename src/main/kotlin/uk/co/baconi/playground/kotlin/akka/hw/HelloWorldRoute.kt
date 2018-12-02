@@ -21,24 +21,19 @@ import akka.http.javadsl.server.Directives.*
 import akka.http.javadsl.server.Route
 import uk.co.baconi.playground.kotlin.akka.JsonSupport
 import uk.co.baconi.playground.kotlin.akka.marshaller
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.CompletionStage
 
 interface HelloWorldRoute : JsonSupport {
 
+    val helloWorldController: HelloWorldController
+
     fun helloWorldRoute(): Route = path("hello-world") {
         get {
-            onSuccess(processHelloWorld()) { result ->
+            onSuccess(helloWorldController.processHelloWorld()) { result ->
                 when(result) {
                     is HelloWorldSuccess -> complete(OK, result, marshaller<HelloWorldSuccess>())
                     else -> complete(INTERNAL_SERVER_ERROR)
                 }
             }
         }
-    }
-
-    private fun processHelloWorld(): CompletionStage<HelloWorldResult> {
-        // TODO - Call HelloWorld Actor
-        return CompletableFuture.completedFuture(HelloWorldSuccess("Hello World"))
     }
 }

@@ -2,6 +2,7 @@
 ![license](https://img.shields.io/github/license/beercan1989/playground-kotlin-akka.svg)
 [![build](https://travis-ci.com/beercan1989/playground-kotlin-akka.svg?branch=master)](https://travis-ci.com/beercan1989/playground-kotlin-akka)
 [![release](https://img.shields.io/github/release/beercan1989/playground-kotlin-akka.svg)](https://github.com/beercan1989/playground-kotlin-akka/releases)
+![commits since](https://img.shields.io/github/commits-since/beercan1989/playground-kotlin-akka/latest.svg)
   
 Test project for Akka HTTP, Akka and Kotlin wrapped in Gradle
 

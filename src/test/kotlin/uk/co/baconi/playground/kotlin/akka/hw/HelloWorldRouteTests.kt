@@ -19,20 +19,29 @@ package uk.co.baconi.playground.kotlin.akka.hw
 import akka.http.javadsl.model.ContentTypes.APPLICATION_JSON
 import akka.http.javadsl.model.HttpRequest
 import akka.http.javadsl.model.StatusCodes.OK
-import akka.http.javadsl.testkit.TestRoute
 import io.kotlintest.assertSoftly
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.verify
 import uk.co.baconi.playground.kotlin.akka.JsonSupport
 import uk.co.baconi.playground.kotlin.akka.testkit.RouteTestKit
 import uk.co.baconi.playground.kotlin.akka.unmarshaller
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CompletableFuture.completedFuture
+import java.util.concurrent.CompletionStage
 
 class HelloWorldRouteTests : StringSpec(), RouteTestKit, HelloWorldRoute, JsonSupport {
 
-    private val underTest: TestRoute = routeTestKit.testRoute(helloWorldRoute())
+    override val helloWorldController: HelloWorldController = mockk()
+
+    private val underTest = routeTestKit.testRoute(helloWorldRoute())
 
     init {
         """GET on /hello-world should return `{"message":"Hello World"}`""" {
+
+            every { helloWorldController.processHelloWorld() } returns completedFuture(HelloWorldSuccess("Hello World"))
 
             val result = underTest.run(HttpRequest.GET("/hello-world"))
             assertSoftly {
@@ -41,6 +50,8 @@ class HelloWorldRouteTests : StringSpec(), RouteTestKit, HelloWorldRoute, JsonSu
                 result.entityString() shouldBe """{"message":"Hello World"}"""
                 result.entity(unmarshaller<HelloWorldSuccess>()) shouldBe HelloWorldSuccess("Hello World")
             }
+
+            verify { helloWorldController.processHelloWorld() }
         }
     }
 }
