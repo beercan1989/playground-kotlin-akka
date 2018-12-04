@@ -26,8 +26,12 @@ object HelloWorldRoute {
     fun apply(helloWorldController: HelloWorldController): Route = path("hello-world") {
         route(
             get {
-                onSuccess(helloWorldController.processHelloWorld()) { result ->
-                    complete(OK, result, marshaller<HelloWorldMessage>())
+                extractLog { log ->
+                    log.info("Processing GET /hello-world")
+                    onSuccess(helloWorldController.processHelloWorld()) { result ->
+                        log.info("Processed GET /hello-world")
+                        complete(OK, result, marshaller<HelloWorldMessage>())
+                    }
                 }
             }
         )
