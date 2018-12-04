@@ -30,28 +30,24 @@ import akka.http.javadsl.unmarshalling.Unmarshaller
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 
-interface JsonSupport {
+object JsonSupport {
 
     fun withJsonRejectionHandling(inner: () -> Route): RouteAdapter = handleRejections(jsonRejectionHandler, inner)
 
-    val objectMapper: ObjectMapper
-        get() = ObjectMapper()
-                .registerKotlinModule()
-                .findAndRegisterModules()
+    inline fun <reified A : Any> unmarshaller(): Unmarshaller<HttpEntity, A> = Jackson.unmarshaller(objectMapper, A::class.java)
 
-    private val jsonRejectionHandler: RejectionHandler
-        get() = RejectionHandler.defaultHandler().mapRejectionResponse { response ->
-            when(response.entity()) {
-                is HttpEntity.Strict -> response.withEntity(APPLICATION_JSON, toErrorResult(response.status()))
-                else -> response
-            }
+    inline fun <reified A : Any> marshaller(): Marshaller<A, RequestEntity> = Jackson.marshaller<A>(objectMapper)
+
+    val objectMapper: ObjectMapper = ObjectMapper()
+            .registerKotlinModule()
+            .findAndRegisterModules()
+
+    private val jsonRejectionHandler = RejectionHandler.defaultHandler().mapRejectionResponse { response ->
+        when (response.entity()) {
+            is HttpEntity.Strict -> response.withEntity(APPLICATION_JSON, toErrorResult(response.status()))
+            else -> response
         }
+    }
 
     private fun toErrorResult(statusCode: StatusCode) = objectMapper.writeValueAsBytes(ErrorResult(statusCode))
 }
-
-inline fun <reified A: Any> JsonSupport.unmarshaller(): Unmarshaller<HttpEntity, A> =
-        Jackson.unmarshaller(objectMapper, A::class.java)
-
-inline fun <reified A: Any> JsonSupport.marshaller(): Marshaller<A, RequestEntity> =
-        Jackson.marshaller<A>(objectMapper)

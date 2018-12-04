@@ -19,12 +19,12 @@ package uk.co.baconi.playground.kotlin.akka.hw
 import akka.actor.typed.Behavior
 import akka.actor.typed.javadsl.Behaviors
 
-interface HelloWorldActor {
+object HelloWorldActor {
 
-    fun helloWorldActor(): Behavior<HelloWorldCommand> = Behaviors.receive { _, request ->
+    fun apply(): Behavior<HelloWorldCommand> = Behaviors.receive { _, request ->
         when(request) {
             is HelloWorldRequest -> {
-                request.respondTo.tell(HelloWorldSuccess("Hello World"))
+                request.respondTo.tell(HelloWorldMessage("Hello World"))
                 Behaviors.same<HelloWorldCommand>()
             }
             else -> {

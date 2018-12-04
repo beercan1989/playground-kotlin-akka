@@ -27,5 +27,5 @@ class HelloWorldController(
         private val timeout: Timeout,
         private val scheduler: Scheduler
 ) {
-    fun processHelloWorld(): CompletionStage<HelloWorldResult> = actor.ask({r -> HelloWorldRequest(r)}, timeout, scheduler)
+    fun processHelloWorld(): CompletionStage<HelloWorldMessage> = actor.ask({r -> HelloWorldRequest(r)}, timeout, scheduler)
 }

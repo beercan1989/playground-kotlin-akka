@@ -17,7 +17,6 @@
 package uk.co.baconi.playground.kotlin.akka
 
 import akka.actor.Scheduler
-import akka.actor.typed.ActorRef
 import akka.stream.ActorMaterializer
 
 import akka.actor.typed.ActorSystem
@@ -28,6 +27,7 @@ import akka.http.javadsl.ConnectHttp
 import akka.http.javadsl.ServerBinding
 import akka.http.javadsl.server.Route
 import akka.util.Timeout
+import uk.co.baconi.playground.kotlin.akka.JsonSupport.withJsonRejectionHandling
 
 import uk.co.baconi.playground.kotlin.akka.hw.HelloWorldActor
 import uk.co.baconi.playground.kotlin.akka.hw.HelloWorldCommand
@@ -37,7 +37,7 @@ import uk.co.baconi.playground.kotlin.akka.hw.HelloWorldRoute
 import java.util.concurrent.CompletionStage
 import java.util.concurrent.TimeUnit.SECONDS
 
-class Application : HelloWorldRoute, HelloWorldActor {
+class Application {
 
     companion object {
         @JvmStatic fun main(args: Array<String>) {
@@ -46,17 +46,17 @@ class Application : HelloWorldRoute, HelloWorldActor {
         }
     }
 
-    private val actorSystem: ActorSystem<HelloWorldCommand> = ActorSystem.create(helloWorldActor(),"application")
+    private val actorSystem: ActorSystem<HelloWorldCommand> = ActorSystem.create(HelloWorldActor.apply(),"application")
 
     private val actorScheduler: Scheduler = actorSystem.scheduler()
     private val helloWorldTimeout: Timeout = Timeout.apply(1, SECONDS) // TODO - Extract into config
 
     // Probably not done the typed actor setup right given I'm doing this, need to do further reading.
-    override val helloWorldController = HelloWorldController(actorSystem, helloWorldTimeout, actorScheduler)
+    private val helloWorldController = HelloWorldController(actorSystem, helloWorldTimeout, actorScheduler)
 
     fun startHelloWorldServer(host: String, port: Int): Application {
         startHttpServer(host, port) {
-            helloWorldRoute()
+            HelloWorldRoute.apply(helloWorldController)
         }
         return this
     }

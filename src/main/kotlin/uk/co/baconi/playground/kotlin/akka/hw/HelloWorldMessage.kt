@@ -16,4 +16,4 @@
 
 package uk.co.baconi.playground.kotlin.akka.hw
 
-data class HelloWorldSuccess(val message: String) : HelloWorldResult
+data class HelloWorldMessage(val message: String) : HelloWorldResult

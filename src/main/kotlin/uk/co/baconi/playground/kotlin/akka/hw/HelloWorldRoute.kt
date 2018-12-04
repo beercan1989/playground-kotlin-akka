@@ -19,21 +19,17 @@ package uk.co.baconi.playground.kotlin.akka.hw
 import akka.http.javadsl.model.StatusCodes.*
 import akka.http.javadsl.server.Directives.*
 import akka.http.javadsl.server.Route
-import uk.co.baconi.playground.kotlin.akka.JsonSupport
-import uk.co.baconi.playground.kotlin.akka.marshaller
+import uk.co.baconi.playground.kotlin.akka.JsonSupport.marshaller
 
-interface HelloWorldRoute : JsonSupport {
+object HelloWorldRoute {
 
-    val helloWorldController: HelloWorldController
-
-    fun helloWorldRoute(): Route = path("hello-world") {
-        get {
-            onSuccess(helloWorldController.processHelloWorld()) { result ->
-                when(result) {
-                    is HelloWorldSuccess -> complete(OK, result, marshaller<HelloWorldSuccess>())
-                    else -> complete(INTERNAL_SERVER_ERROR)
+    fun apply(helloWorldController: HelloWorldController): Route = path("hello-world") {
+        route(
+            get {
+                onSuccess(helloWorldController.processHelloWorld()) { result ->
+                    complete(OK, result, marshaller<HelloWorldMessage>())
                 }
             }
-        }
+        )
     }
 }

@@ -18,4 +18,4 @@ package uk.co.baconi.playground.kotlin.akka.hw
 
 import akka.actor.typed.ActorRef
 
-data class HelloWorldRequest(val respondTo: ActorRef<HelloWorldResult>) : HelloWorldCommand
+data class HelloWorldRequest(val respondTo: ActorRef<HelloWorldMessage>) : HelloWorldCommand
