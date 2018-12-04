@@ -31,11 +31,13 @@ import uk.co.baconi.playground.kotlin.akka.JsonSupport.withJsonRejectionHandling
 import uk.co.baconi.playground.kotlin.akka.hw.HelloWorldActor
 import uk.co.baconi.playground.kotlin.akka.hw.HelloWorldController
 import uk.co.baconi.playground.kotlin.akka.hw.HelloWorldRoute
+import java.time.Duration
 
 import java.util.concurrent.TimeUnit.SECONDS
 
 interface Command
 private data class Start(val host: String, val port: Int) : Command
+private data class Stop(val timeout: Duration) : Command
 
 class ApplicationTyped(private val actorSystem: ActorSystem<Command>) {
 
@@ -43,6 +45,8 @@ class ApplicationTyped(private val actorSystem: ActorSystem<Command>) {
         @JvmStatic fun main(args: Array<String>) {
             ApplicationTyped()
                     .start("127.0.0.1", 8081)
+                    .wait(Duration.ofSeconds(30))
+                    .stop(Duration.ofMinutes(1))
         }
     }
 
@@ -63,13 +67,21 @@ class ApplicationTyped(private val actorSystem: ActorSystem<Command>) {
 
             val http = Http.get(unTypedActorSystem)
 
-            Behaviors.receiveMessage<Command> { cmd ->
-
-                when (cmd) {
+            Behaviors.receiveMessage { startCmd ->
+                when (startCmd) {
                     is Start -> {
-                        context.system.log().info("Starting server at http://${cmd.host}:${cmd.port}/")
-                        http.bindAndHandle(flow, ConnectHttp.toHost(cmd.host, cmd.port), materializer)
-                        Behaviors.same()
+                        context.system.log().info("Starting server at http://${startCmd.host}:${startCmd.port}/")
+                        val binding = http.bindAndHandle(flow, ConnectHttp.toHost(startCmd.host, startCmd.port), materializer).toCompletableFuture().join()
+                        Behaviors.receiveMessage  { stopCmd ->
+                            when(stopCmd) {
+                                is Stop -> {
+                                    context.system.log().info("Stopping server at http://${startCmd.host}:${startCmd.port}/")
+                                    binding.terminate(stopCmd.timeout).toCompletableFuture().join()
+                                    Behaviors.stopped()
+                                }
+                                else -> Behaviors.ignore()
+                            }
+                        }
                     }
                     else -> Behaviors.ignore()
                 }
@@ -80,6 +92,16 @@ class ApplicationTyped(private val actorSystem: ActorSystem<Command>) {
 
     fun start(host: String, port: Int): ApplicationTyped {
         actorSystem.tell(Start(host, port))
+        return this
+    }
+
+    fun wait(timeout: Duration): ApplicationTyped {
+        Thread.sleep(timeout.toMillis())
+        return this
+    }
+
+    fun stop(timeout: Duration): ApplicationTyped {
+        actorSystem.tell(Stop(timeout))
         return this
     }
 }
