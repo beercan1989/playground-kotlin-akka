@@ -11,8 +11,12 @@ Test project for Akka HTTP, Akka and Kotlin wrapped in Gradle
 * [x] Akka HTTP routing
 * [x] Github releases via Travis
 
+## Features in version 2
+* [x] Akka Typed actors processing requests
+* [x] Basic unit tests for routes, actors and the glue between them
+* [x] JSON handling of both rejections and exceptions
+
 ## Features coming  
-* [ ] Akka Typed actors processing requests
 * [ ] Throttling requests
 * [ ] Circuit breaker
 * [ ] Configuration to support high throughput
@@ -32,4 +36,14 @@ Build distribution
 ```
 
 ## Endpoints
-* TODO - Define and document
+```bash
+curl -i 'http://localhost:8080/hello-world'
+
+HTTP/1.1 200 OK
+Server: akka-http/10.1.5
+Date: Mon, 17 Dec 2018 23:57:01 GMT
+Content-Type: application/json
+Content-Length: 25
+
+{"message":"Hello World"}
+```
