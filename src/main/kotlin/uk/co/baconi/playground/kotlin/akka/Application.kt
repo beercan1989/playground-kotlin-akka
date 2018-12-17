@@ -16,28 +16,19 @@
 
 package uk.co.baconi.playground.kotlin.akka
 
-import akka.actor.Scheduler
+import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-
-import akka.actor.typed.ActorSystem
-import akka.actor.typed.javadsl.Adapter.toUntyped
-
 import akka.http.javadsl.Http
 import akka.http.javadsl.ConnectHttp
 import akka.http.javadsl.ServerBinding
 import akka.http.javadsl.server.Route
-import akka.util.Timeout
 import uk.co.baconi.playground.kotlin.akka.JsonSupport.withJsonRejectionHandling
-
-import uk.co.baconi.playground.kotlin.akka.hw.HelloWorldActor
-import uk.co.baconi.playground.kotlin.akka.hw.HelloWorldCommand
-import uk.co.baconi.playground.kotlin.akka.hw.HelloWorldController
 import uk.co.baconi.playground.kotlin.akka.hw.HelloWorldRoute
+import uk.co.baconi.playground.kotlin.akka.hw.HelloWorldProvider
 
 import java.util.concurrent.CompletionStage
-import java.util.concurrent.TimeUnit.SECONDS
 
-class Application {
+class Application : HelloWorldRoute {
 
     companion object {
         @JvmStatic fun main(args: Array<String>) {
@@ -46,27 +37,23 @@ class Application {
         }
     }
 
-    private val actorSystem: ActorSystem<HelloWorldCommand> = ActorSystem.create(HelloWorldActor.apply(),"application")
+    private val actorSystem: ActorSystem = ActorSystem.create("hello-world-application")
 
-    private val actorScheduler: Scheduler = actorSystem.scheduler()
-    private val helloWorldTimeout: Timeout = Timeout.apply(1, SECONDS) // TODO - Extract into config
-
-    // Probably not done the typed actor setup right given I'm doing this, need to do further reading.
-    private val helloWorldController = HelloWorldController(actorSystem, helloWorldTimeout, actorScheduler)
+    override val helloWorldProvider = HelloWorldProvider()
 
     fun startHelloWorldServer(host: String, port: Int): Application {
-        startHttpServer(host, port) {
-            HelloWorldRoute.apply(helloWorldController)
+        startJsonHttpServer(host, port) {
+            helloWorldRoute()
         }
         return this
     }
 
-    private fun startHttpServer(host: String, port: Int, routes: () -> Route): CompletionStage<ServerBinding> {
+    private fun startJsonHttpServer(host: String, port: Int, routes: () -> Route): CompletionStage<ServerBinding> {
 
-        val actorMaterializer = ActorMaterializer.create(toUntyped(actorSystem))
+        val actorMaterializer = ActorMaterializer.create(actorSystem)
 
-        val routeFlow = withJsonRejectionHandling(routes).flow(toUntyped(actorSystem), actorMaterializer)
-        val http = Http.get(toUntyped(actorSystem))
+        val routeFlow = routes().flow(actorSystem, actorMaterializer)
+        val http = Http.get(actorSystem)
 
         actorSystem.log().info("Starting server at http://$host:$port/")
 

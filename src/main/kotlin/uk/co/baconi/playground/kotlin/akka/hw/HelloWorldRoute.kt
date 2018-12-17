@@ -16,24 +16,34 @@
 
 package uk.co.baconi.playground.kotlin.akka.hw
 
-import akka.http.javadsl.model.StatusCodes.*
+import akka.actor.ActorSystem
+import akka.http.javadsl.model.StatusCodes.OK
 import akka.http.javadsl.server.Directives.*
 import akka.http.javadsl.server.Route
 import uk.co.baconi.playground.kotlin.akka.JsonSupport.marshaller
+import uk.co.baconi.playground.kotlin.akka.JsonSupport.withJsonExceptionHandling
+import uk.co.baconi.playground.kotlin.akka.JsonSupport.withJsonRejectionHandling
+import java.util.concurrent.CompletionStage
 
-object HelloWorldRoute {
+interface HelloWorldRoute {
 
-    fun apply(helloWorldController: HelloWorldController): Route = path("hello-world") {
-        route(
-            get {
-                extractLog { log ->
-                    log.info("Processing GET /hello-world")
-                    onSuccess(helloWorldController.processHelloWorld()) { result ->
-                        log.info("Processed GET /hello-world")
-                        complete(OK, result, marshaller<HelloWorldMessage>())
+    val helloWorldProvider: (ActorSystem) -> CompletionStage<HelloWorldMessage>
+
+    fun helloWorldRoute(): Route = withJsonExceptionHandling {
+        withJsonRejectionHandling {
+            path("hello-world") {
+                get {
+                    extractActorSystem { actorSystem ->
+                        extractLog { log ->
+                            log.info("Processing GET /hello-world")
+                            onSuccess(helloWorldProvider(actorSystem)) { result ->
+                                log.info("Processed GET /hello-world")
+                                complete(OK, result, marshaller<HelloWorldMessage>())
+                            }
+                        }
                     }
                 }
             }
-        )
+        }
     }
 }

@@ -45,7 +45,7 @@ dependencies {
     testImplementation("com.typesafe.akka", "akka-http-testkit_$scalaVersion", akkaHttpVersion)
 
     // Akka Actors TestKit
-    //testImplementation("com.typesafe.akka", "akka-actor-testkit-typed_$scalaVersion", akkaVersion)
+    testImplementation("com.typesafe.akka", "akka-actor-testkit-typed_$scalaVersion", akkaVersion)
 
     // Kotlin Mocking
     testImplementation("io.mockk", "mockk", "1.8.13.kotlin13")

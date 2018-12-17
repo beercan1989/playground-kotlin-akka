@@ -16,8 +16,15 @@
 
 package uk.co.baconi.playground.kotlin.akka.hw
 
+import akka.actor.typed.ActorRef
 import akka.actor.typed.Behavior
 import akka.actor.typed.javadsl.Behaviors
+
+interface HelloWorldCommand
+data class HelloWorldRequest(val respondTo: ActorRef<HelloWorldMessage>) : HelloWorldCommand
+
+interface HelloWorldResult
+data class HelloWorldMessage(val message: String) : HelloWorldResult
 
 object HelloWorldActor {
 

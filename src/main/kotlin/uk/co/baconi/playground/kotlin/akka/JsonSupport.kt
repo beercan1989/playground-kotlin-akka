@@ -22,17 +22,23 @@ import akka.http.javadsl.model.ContentTypes.APPLICATION_JSON
 import akka.http.javadsl.model.HttpEntity
 import akka.http.javadsl.model.RequestEntity
 import akka.http.javadsl.model.StatusCode
-import akka.http.javadsl.server.Directives.handleRejections
+import akka.http.javadsl.model.StatusCodes
+import akka.http.javadsl.server.Directives.*
+import akka.http.javadsl.server.ExceptionHandler
 import akka.http.javadsl.server.RejectionHandler
 import akka.http.javadsl.server.Route
-import akka.http.javadsl.server.directives.RouteAdapter
 import akka.http.javadsl.unmarshalling.Unmarshaller
+import akka.http.scaladsl.model.IllegalRequestException
+import akka.japi.pf.FI
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import scala.util.control.NonFatal
 
 object JsonSupport {
 
-    fun withJsonRejectionHandling(inner: () -> Route): RouteAdapter = handleRejections(jsonRejectionHandler, inner)
+    fun withJsonRejectionHandling(inner: () -> Route): Route = handleRejections(jsonRejectionHandler, inner)
+
+    fun withJsonExceptionHandling(inner: () -> Route): Route = handleExceptions(jsonExceptionHandler, inner)
 
     inline fun <reified A : Any> unmarshaller(): Unmarshaller<HttpEntity, A> = Jackson.unmarshaller(objectMapper, A::class.java)
 
@@ -41,6 +47,23 @@ object JsonSupport {
     val objectMapper: ObjectMapper = ObjectMapper()
             .registerKotlinModule()
             .findAndRegisterModules()
+
+    private val errorResultMarshaller = JsonSupport.marshaller<ErrorResult>()
+
+    private val onNonFatalExceptions = FI.TypedPredicate<Throwable> { t -> NonFatal.apply(t) }
+
+    private val jsonExceptionHandler = ExceptionHandler.newBuilder()
+            .match(IllegalRequestException::class.java) { throwable ->
+                val status = throwable.status()
+                val errorResult = ErrorResult(status.intValue(), throwable.info().format(false))
+                complete(status, errorResult, errorResultMarshaller)
+            }.match(Throwable::class.java, onNonFatalExceptions, FI.Apply { exception ->
+                extractLog { logger ->
+                    logger.error("Unhandled exception hit: {}", exception::class)
+                    val errorResult = ErrorResult(StatusCodes.INTERNAL_SERVER_ERROR)
+                complete(StatusCodes.INTERNAL_SERVER_ERROR, errorResult, errorResultMarshaller)
+                }
+            }).build()
 
     private val jsonRejectionHandler = RejectionHandler.defaultHandler().mapRejectionResponse { response ->
         when (response.entity()) {

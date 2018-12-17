@@ -14,21 +14,17 @@
  * limitations under the License.
  */
 
-package uk.co.baconi.playground.kotlin.akka
+package uk.co.baconi.playground.kotlin.akka.testkit
 
-import akka.actor.Scheduler
-import akka.actor.typed.ActorRef
-import akka.actor.typed.javadsl.AskPattern
-import akka.util.Timeout
-import java.util.concurrent.CompletionStage
+import io.kotlintest.Description
+import io.kotlintest.TestResult
+import io.kotlintest.extensions.TestListener
+import io.mockk.clearAllMocks
 
-fun <A, B> ActorRef<A>.ask(
-        message: (ActorRef<B>) -> A,
-        timeout: Timeout,
-        scheduler: Scheduler
-): CompletionStage<B> = AskPattern.ask(
-        this,
-        message,
-        timeout,
-        scheduler
-)
+interface MockingSupport : TestListener {
+
+    override fun afterTest(description: Description, result: TestResult) {
+        super.afterTest(description, result)
+        clearAllMocks()
+    }
+}

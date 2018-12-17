@@ -16,16 +16,20 @@
 
 package uk.co.baconi.playground.kotlin.akka.hw
 
-import akka.actor.Scheduler
-import akka.actor.typed.ActorRef
-import akka.util.Timeout
-import uk.co.baconi.playground.kotlin.akka.ask
-import java.util.concurrent.CompletionStage
+import akka.actor.testkit.typed.javadsl.BehaviorTestKit
+import akka.actor.testkit.typed.javadsl.TestInbox
+import io.kotlintest.specs.StringSpec
 
-class HelloWorldController(
-        private val actor: ActorRef<HelloWorldCommand>,
-        private val timeout: Timeout,
-        private val scheduler: Scheduler
-) {
-    fun processHelloWorld(): CompletionStage<HelloWorldMessage> = actor.ask({r -> HelloWorldRequest(r)}, timeout, scheduler)
-}
+class HelloWorldActorSpec : StringSpec({
+
+    val underTest = BehaviorTestKit.create(HelloWorldActor.apply())
+
+    "[Happy Path] Process HelloWorldRequest's" {
+
+        val testInbox = TestInbox.create<HelloWorldMessage>()
+
+        underTest.run(HelloWorldRequest(testInbox.ref))
+
+        testInbox.expectMessage(HelloWorldMessage("Hello World"))
+    }
+})
