@@ -22,9 +22,11 @@ import akka.http.javadsl.Http
 import akka.http.javadsl.ConnectHttp
 import akka.http.javadsl.ServerBinding
 import akka.http.javadsl.server.Route
+import akka.pattern.CircuitBreaker
 import uk.co.baconi.playground.kotlin.akka.JsonSupport.withJsonRejectionHandling
 import uk.co.baconi.playground.kotlin.akka.hw.HelloWorldRoute
 import uk.co.baconi.playground.kotlin.akka.hw.HelloWorldProvider
+import java.time.Duration
 
 import java.util.concurrent.CompletionStage
 
@@ -40,6 +42,7 @@ class Application : HelloWorldRoute {
     private val actorSystem: ActorSystem = ActorSystem.create("hello-world-application")
 
     override val helloWorldProvider = HelloWorldProvider()
+    override val helloWorldCircuitBreaker = createCircuitBreaker()
 
     fun startHelloWorldServer(host: String, port: Int): Application {
         startJsonHttpServer(host, port) {
@@ -58,5 +61,13 @@ class Application : HelloWorldRoute {
         actorSystem.log().info("Starting server at http://$host:$port/")
 
         return http.bindAndHandle(routeFlow, ConnectHttp.toHost(host, port), actorMaterializer)
+    }
+
+    private fun createCircuitBreaker(): CircuitBreaker {
+        val maxFailures = 10
+        val callTimeout = Duration.ofMillis(100)
+        val resetTimeout = Duration.ofMinutes(5)
+
+        return CircuitBreaker.create(actorSystem.scheduler, maxFailures, callTimeout, resetTimeout)
     }
 }

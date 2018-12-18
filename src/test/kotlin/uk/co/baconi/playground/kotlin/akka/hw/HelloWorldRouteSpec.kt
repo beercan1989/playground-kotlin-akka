@@ -21,6 +21,7 @@ import akka.http.javadsl.model.ContentTypes.APPLICATION_JSON
 import akka.http.javadsl.model.HttpRequest
 import akka.http.javadsl.model.StatusCodes.INTERNAL_SERVER_ERROR
 import akka.http.javadsl.model.StatusCodes.OK
+import akka.pattern.CircuitBreaker
 import io.kotlintest.assertSoftly
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
@@ -30,6 +31,7 @@ import io.mockk.verify
 import uk.co.baconi.playground.kotlin.akka.ErrorResult
 import uk.co.baconi.playground.kotlin.akka.JsonSupport.unmarshaller
 import uk.co.baconi.playground.kotlin.akka.testkit.RouteTestKit
+import java.time.Duration
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletableFuture.completedFuture
 import java.util.concurrent.CompletionStage
@@ -38,6 +40,12 @@ import java.util.concurrent.TimeoutException
 class HelloWorldRouteSpec : StringSpec(), RouteTestKit, HelloWorldRoute {
 
     override val helloWorldProvider: (ActorSystem) -> CompletionStage<HelloWorldMessage> = mockk()
+    override val helloWorldCircuitBreaker: CircuitBreaker = CircuitBreaker.create(
+            actorSystem.scheduler,
+            1,
+            Duration.ofMillis(500),
+            Duration.ofMillis(500)
+    )
 
     private val underTest = routeTestKit.testRoute(helloWorldRoute())
 

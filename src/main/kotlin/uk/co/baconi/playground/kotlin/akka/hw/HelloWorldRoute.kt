@@ -20,14 +20,20 @@ import akka.actor.ActorSystem
 import akka.http.javadsl.model.StatusCodes.OK
 import akka.http.javadsl.server.Directives.*
 import akka.http.javadsl.server.Route
+import akka.pattern.CircuitBreaker
+import scala.util.Failure
+import scala.util.Success
 import uk.co.baconi.playground.kotlin.akka.JsonSupport.marshaller
 import uk.co.baconi.playground.kotlin.akka.JsonSupport.withJsonExceptionHandling
 import uk.co.baconi.playground.kotlin.akka.JsonSupport.withJsonRejectionHandling
+import java.lang.Exception
 import java.util.concurrent.CompletionStage
 
 interface HelloWorldRoute {
 
     val helloWorldProvider: (ActorSystem) -> CompletionStage<HelloWorldMessage>
+
+    val helloWorldCircuitBreaker: CircuitBreaker
 
     fun helloWorldRoute(): Route = withJsonExceptionHandling {
         withJsonRejectionHandling {
@@ -36,9 +42,13 @@ interface HelloWorldRoute {
                     extractActorSystem { actorSystem ->
                         extractLog { log ->
                             log.info("Processing GET /hello-world")
-                            onSuccess(helloWorldProvider(actorSystem)) { result ->
+                            onCompleteWithBreaker(helloWorldCircuitBreaker, { helloWorldProvider(actorSystem) }) { result ->
                                 log.info("Processed GET /hello-world")
-                                complete(OK, result, marshaller<HelloWorldMessage>())
+                                when(result) {
+                                    is Success -> complete(OK, result.value(), marshaller())
+                                    is Failure -> throw result.exception()
+                                    else -> throw Exception("Try result was neither a Success or Failure.")
+                                }
                             }
                         }
                     }
