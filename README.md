@@ -16,9 +16,11 @@ Test project for Akka HTTP, Akka and Kotlin wrapped in Gradle
 * [x] Basic unit tests for routes, actors and the glue between them
 * [x] JSON handling of both rejections and exceptions
 
+## Features in version 3
+* [x] Basic circuit breaker between the HTTP routing and the per request Actors 
+
 ## Features coming  
 * [ ] Throttling requests
-* [ ] Circuit breaker
 * [ ] Configuration to support high throughput
 
 ## How to
